@@ -1,29 +1,53 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { useEffect } from 'react'
+import { Scene } from './components/3d/Scene'
+import { LoadingScreen } from './components/ui/LoadingScreen'
+import { Overlay } from './components/ui/Overlay'
+import { useBackgroundMusic, useAmbientSound } from './hooks/useAudio'
+import { useStore } from './stores/useStore'
+import './styles/globals.css'
+import './styles/animations.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const isMuted = useStore((state) => state.isMuted)
+  const isLoading = useStore((state) => state.isLoading)
+  const backgroundMusic = useBackgroundMusic()
+  const ambientSound = useAmbientSound()
+
+  useEffect(() => {
+    if (!isLoading && !isMuted) {
+      backgroundMusic.play()
+      ambientSound.play()
+    } else {
+      backgroundMusic.pause()
+      ambientSound.pause()
+    }
+  }, [isLoading, isMuted, backgroundMusic, ambientSound])
+
+  useEffect(() => {
+    const handleFirstInteraction = () => {
+      if (!isMuted && !isLoading) {
+        backgroundMusic.play()
+        ambientSound.play()
+      }
+      document.removeEventListener('click', handleFirstInteraction)
+      document.removeEventListener('keydown', handleFirstInteraction)
+    }
+
+    document.addEventListener('click', handleFirstInteraction)
+    document.addEventListener('keydown', handleFirstInteraction)
+
+    return () => {
+      document.removeEventListener('click', handleFirstInteraction)
+      document.removeEventListener('keydown', handleFirstInteraction)
+    }
+  }, [isMuted, isLoading, backgroundMusic, ambientSound])
 
   return (
-  <div>
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-950 to-blue-700">
-      <button onClick={() => setCount((count) => count + 1)}>
-        count is {count}
-      </button>
+    <div className="app">
+      <LoadingScreen />
+      <Scene />
+      <Overlay />
     </div>
-    <p>
-      Edit <code>src/App.tsx</code> and save to test HMR
-    </p>
-    <div className="logos">
-      <a href="https://vite.dev" target="_blank">
-        <img src={viteLogo} className="logo" alt="Vite logo" />
-      </a>
-      <a href="https://react.dev" target="_blank">
-        <img src={reactLogo} className="logo react" alt="React logo" />
-      </a>
-    </div>
-  </div>
   )
 }
 
