@@ -1,70 +1,127 @@
+// src/hooks/useAudio.ts
 import { useEffect, useRef, useCallback } from 'react'
 import { Howl } from 'howler'
-import { useStore } from '../stores/useStore'
+import { useAudioState } from '../stores/useStore'
+import type { SfxName } from '../types'
 
-interface AudioConfig {
-  src: string
-  loop?: boolean
-  volume?: number
-  autoplay?: boolean
+interface SfxCollection {
+  [key: string]: Howl
 }
 
-export const useAudio = (config: AudioConfig) => {
-  const soundRef = useRef<Howl | null>(null)
-  const isMuted = useStore((state) => state.isMuted)
+interface UseAudioReturn {
+  playSfx: (name: SfxName) => void
+  playMusic: () => void
+  pauseMusic: () => void
+  toggleMusic: () => void
+  isPlaying: boolean
+}
 
+export function useAudio(): UseAudioReturn {
+  const musicRef = useRef<Howl | null>(null)
+  const sfxRef = useRef<SfxCollection>({})
+  
+  const { 
+    audioEnabled, 
+    musicPlaying, 
+    musicVolume, 
+    sfxVolume,
+    setMusicPlaying 
+  } = useAudioState()
+
+  // Initialiser la musique et les effets sonores
   useEffect(() => {
-    soundRef.current = new Howl({
-      src: [config.src],
-      loop: config.loop ?? true,
-      volume: config.volume ?? 0.5,
-      autoplay: false,
+    // Créer l'instance de musique
+    musicRef.current = new Howl({
+      src: ['/audio/jingle-bells.mp3'],
+      loop: true,
+      volume: musicVolume,
+      html5: true, // Meilleur pour les longs fichiers audio
+      onplayerror: () => {
+        console.warn('Audio playback failed, retrying...')
+        musicRef.current?.once('unlock', () => {
+          musicRef.current?.play()
+        })
+      },
     })
 
+    // Créer les effets sonores
+    const sfxFiles: Record<SfxName, string> = {
+      click: '/audio/sfx/click.mp3',
+      whoosh: '/audio/sfx/whoosh.mp3',
+      magic: '/audio/sfx/magic.mp3',
+      bell: '/audio/sfx/bell.mp3',
+    }
+
+    Object.entries(sfxFiles).forEach(([name, src]) => {
+      sfxRef.current[name] = new Howl({
+        src: [src],
+        volume: sfxVolume,
+        preload: true,
+      })
+    })
+
+    // Cleanup
     return () => {
-      soundRef.current?.unload()
+      if (musicRef.current) {
+        musicRef.current.unload()
+      }
+      Object.values(sfxRef.current).forEach((sfx) => sfx.unload())
     }
-  }, [config.src, config.loop, config.volume])
+  }, []) // Exécuté une seule fois au montage
 
+  // Gérer le play/pause de la musique
   useEffect(() => {
-    if (soundRef.current) {
-      soundRef.current.mute(isMuted)
+    if (!musicRef.current) return
+
+    if (audioEnabled && musicPlaying) {
+      musicRef.current.play()
+    } else {
+      musicRef.current.pause()
     }
-  }, [isMuted])
+  }, [audioEnabled, musicPlaying])
 
-  const play = useCallback(() => {
-    if (soundRef.current && !soundRef.current.playing()) {
-      soundRef.current.play()
+  // Mettre à jour le volume de la musique
+  useEffect(() => {
+    if (musicRef.current) {
+      musicRef.current.volume(musicVolume)
     }
-  }, [])
+  }, [musicVolume])
 
-  const stop = useCallback(() => {
-    soundRef.current?.stop()
-  }, [])
+  // Mettre à jour le volume des effets sonores
+  useEffect(() => {
+    Object.values(sfxRef.current).forEach((sfx) => {
+      sfx.volume(sfxVolume)
+    })
+  }, [sfxVolume])
 
-  const pause = useCallback(() => {
-    soundRef.current?.pause()
-  }, [])
+  // Jouer un effet sonore
+  const playSfx = useCallback((name: SfxName): void => {
+    if (!audioEnabled) return
+    
+    const sfx = sfxRef.current[name]
+    if (sfx) {
+      sfx.play()
+    }
+  }, [audioEnabled])
 
-  const setVolume = useCallback((volume: number) => {
-    soundRef.current?.volume(volume)
-  }, [])
+  // Contrôles de la musique
+  const playMusic = useCallback((): void => {
+    setMusicPlaying(true)
+  }, [setMusicPlaying])
 
-  return { play, stop, pause, setVolume, sound: soundRef.current }
-}
+  const pauseMusic = useCallback((): void => {
+    setMusicPlaying(false)
+  }, [setMusicPlaying])
 
-export const useBackgroundMusic = () => {
-  return useAudio({
-    src: '/audio/jingle-bells.mp3',
-    loop: true,
-    volume: 0.3,
-  })
-}
+  const toggleMusic = useCallback((): void => {
+    setMusicPlaying(!musicPlaying)
+  }, [musicPlaying, setMusicPlaying])
 
-export const useAmbientSound = () => {
-  return useAudio({
-    src: '/audio/ambient-wind.mp3',
-    loop: true,
-    volume: 0.2,
-  })
+  return {
+    playSfx,
+    playMusic,
+    pauseMusic,
+    toggleMusic,
+    isPlaying: musicPlaying && audioEnabled,
+  }
 }

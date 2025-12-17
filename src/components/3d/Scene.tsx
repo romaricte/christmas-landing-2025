@@ -1,80 +1,82 @@
-import { Suspense } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Preload, Stars } from '@react-three/drei'
-import { ChristmasTree } from './ChristmasTree'
-import { Snowfall } from './Snowfall'
-import { Ground } from './Ground'
-import { Environment } from './Environment'
-import { Lights } from './Lights'
-import { SantaSleigh } from './SantaSleigh'
-import { Snowman } from './Snowman'
-import { Gifts } from './Gifts'
-import { Cabin } from './Cabin'
-import { PostProcessing } from '../effects/PostProcessing'
-import { SCENE_CONFIG } from '../../utils/constants'
+// src/components/3d/Scene.tsx
+import { useRef } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
+import { Stars } from '@react-three/drei'
+import * as THREE from 'three'
 
-const SceneContent = () => {
+import Lights from './Lights'
+import Environment from './Environment'
+import Ground from './Ground'
+import Snowfall from './Snowfall'
+import ChristmasTree from './ChristmasTree'
+import Gifts from './Gifts'
+import Effects from '../effects/Effects'
+
+import { useStore } from '../../stores/useStore'
+
+export default function Scene(): JSX.Element {
+  const groupRef = useRef<THREE.Group>(null)
+  const mousePosition = useStore((state) => state.mousePosition)
+
+  // Effet parallax avec la souris
+  useFrame(() => {
+    if (groupRef.current) {
+      // Rotation douce basée sur la position de la souris
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(
+        groupRef.current.rotation.y,
+        mousePosition.x * 0.1,
+        0.05
+      )
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(
+        groupRef.current.rotation.x,
+        mousePosition.y * 0.05,
+        0.05
+      )
+    }
+  })
+
   return (
     <>
-      <Lights />
-      <Environment />
-      <Ground />
-      <ChristmasTree position={[0, 0, 0]} />
-      <Snowfall />
-      <SantaSleigh />
-      <Snowman position={[-4, 0, 3]} />
-      <Snowman position={[5, 0, 2]} scale={0.7} />
-      <Gifts />
-      <Cabin position={[-8, 0, -5]} />
-      <Stars radius={100} depth={50} count={3000} factor={4} saturation={0} fade speed={1} />
-      <PostProcessing />
-    </>
-  )
-}
+      {/* Couleur de fond */}
+      <color attach="background" args={['#0a0a1a']} />
+      
+      {/* Brouillard pour la profondeur */}
+      <fog attach="fog" args={['#0a0a1a', 15, 50]} />
 
-export const Scene = () => {
-  return (
-    <Canvas
-      shadows
-      dpr={[1, 2]}
-      camera={{
-        fov: SCENE_CONFIG.camera.fov,
-        near: SCENE_CONFIG.camera.near,
-        far: SCENE_CONFIG.camera.far,
-        position: SCENE_CONFIG.camera.position,
-      }}
-      gl={{ 
-        antialias: true,
-        alpha: false,
-        powerPreference: 'high-performance',
-      }}
-      style={{ 
-        position: 'fixed', 
-        top: 0, 
-        left: 0, 
-        width: '100%', 
-        height: '100%',
-        background: 'linear-gradient(to bottom, #0a1628, #1a237e)',
-      }}
-    >
-      <fog attach="fog" args={[SCENE_CONFIG.fog.color, SCENE_CONFIG.fog.near, SCENE_CONFIG.fog.far]} />
-      <color attach="background" args={['#0a1628']} />
-      
-      <Suspense fallback={null}>
-        <SceneContent />
-        <Preload all />
-      </Suspense>
-      
-      <OrbitControls
-        enablePan={false}
-        enableZoom={true}
-        minDistance={5}
-        maxDistance={25}
-        minPolarAngle={Math.PI / 6}
-        maxPolarAngle={Math.PI / 2.2}
-        autoRotate
-        autoRotateSpeed={0.3}
+      {/* Étoiles en arrière-plan */}
+      <Stars
+        radius={100}
+        depth={50}
+        count={3000}
+        factor={4}
+        saturation={0}
+        fade
+        speed={1}
       />
-    </Canvas>
+
+      {/* Groupe principal avec parallax */}
+      <group ref={groupRef}>
+        {/* Éclairage */}
+        <Lights />
+        
+        {/* Environnement HDRI */}
+        <Environment />
+        
+        {/* Sol enneigé */}
+        <Ground />
+        
+        {/* Sapin de Noël */}
+        <ChristmasTree position={[0, 0, 0]} />
+        
+        {/* Cadeaux */}
+        <Gifts />
+      </group>
+
+      {/* Neige (en dehors du groupe pour ne pas être affectée par le parallax) */}
+      <Snowfall />
+
+      {/* Post-processing */}
+      <Effects />
+    </>
   )
 }

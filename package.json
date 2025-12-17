@@ -14,14 +14,14 @@
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.4.2",
     "@react-three/postprocessing": "^3.0.4",
-    "@tailwindcss/vite": "^4.1.17",
+    "@tailwindcss/vite": "^4.1.18",
     "framer-motion": "^12.23.26",
     "gsap": "^3.14.1",
     "howler": "^2.2.4",
     "leva": "^0.10.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "tailwindcss": "^4.1.17",
+    "tailwindcss": "^4.1.18",
     "three": "^0.182.0",
     "zustand": "^5.0.9"
   },
@@ -39,6 +39,7 @@
     "postprocessing": "^6.38.1",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.4"
+    "vite": "^7.2.4",
+    "vite-plugin-glsl": "^1.5.5"
   }
 }

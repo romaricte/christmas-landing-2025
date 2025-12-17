@@ -1,103 +1,210 @@
+/* src/styles/globals.css */
 @import "tailwindcss";
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* ==================== THEME PERSONNALISÉ ==================== */
+@theme {
+  /* Couleurs Christmas */
+  --color-christmas-red: #C41E3A;
+  --color-christmas-red-light: #FF6B6B;
+  --color-christmas-green: #165B33;
+  --color-christmas-green-light: #228B22;
+  --color-christmas-gold: #FFD700;
+  --color-christmas-gold-light: #FFED4A;
+
+  /* Couleurs Night */
+  --color-night-dark: #0F1C2E;
+  --color-night: #1E3A5F;
+  --color-night-light: #2E5A8F;
+
+  /* Couleurs Snow */
+  --color-snow: #FFFFFF;
+  --color-snow-cream: #F5E6D3;
+  --color-snow-ice: #87CEEB;
+
+  /* Fonts */
+  --font-christmas: "Mountains of Christmas", cursive;
+  --font-body: "Quicksand", sans-serif;
+  --font-accent: "Great Vibes", cursive;
+
+  /* Animations */
+  --animate-float: float 3s ease-in-out infinite;
+  --animate-twinkle: twinkle 1.5s ease-in-out infinite;
+  --animate-snowfall: snowfall 10s linear infinite;
+  --animate-shimmer: shimmer 3s linear infinite;
+  --animate-bounce-slow: bounce 2s ease-in-out infinite;
+
+  /* Keyframes */
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  @keyframes snowfall {
+    0% { transform: translateY(-10vh) rotate(0deg); }
+    100% { transform: translateY(100vh) rotate(360deg); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
 }
 
-html,
-body,
-#root {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background: linear-gradient(to bottom, #0a1628, #1a237e);
+/* ==================== BASE STYLES ==================== */
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-body);
+    overflow-x: hidden;
+    background: linear-gradient(to bottom, var(--color-night-dark), var(--color-night));
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background: rgba(196, 30, 58, 0.3);
+  }
+
+  /* Scrollbar personnalisée */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: rgba(30, 58, 95, 0.5);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-christmas-red);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-christmas-red-light);
+  }
 }
 
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* ==================== COMPONENTS ==================== */
+@layer components {
+  /* Typographie festive */
+  .font-christmas {
+    font-family: var(--font-christmas);
+  }
+
+  .font-accent {
+    font-family: var(--font-accent);
+  }
+
+  /* Texte dégradé */
+  .text-gradient-christmas {
+    background: linear-gradient(90deg, var(--color-christmas-red), var(--color-christmas-green), var(--color-christmas-red));
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s linear infinite;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(90deg, var(--color-christmas-gold), #FFA500, var(--color-christmas-gold));
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 2s linear infinite;
+  }
+
+  /* Cartes en verre */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+  }
+
+  /* Boutons */
+  .btn-primary {
+    padding: 1rem 2rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, var(--color-christmas-red), #a01830);
+    color: white;
+    box-shadow: 0 4px 20px rgba(196, 30, 58, 0.4);
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 30px rgba(196, 30, 58, 0.6);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  .btn-secondary {
+    padding: 1rem 2rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    cursor: pointer;
+  }
+
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+  }
+
+  /* Glow effects */
+  .glow-red {
+    box-shadow: 0 0 20px rgba(196, 30, 58, 0.5);
+  }
+
+  .glow-gold {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  }
+
+  .glow-green {
+    box-shadow: 0 0 20px rgba(22, 91, 51, 0.5);
+  }
 }
 
-.app {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-::selection {
-  background: rgba(220, 38, 38, 0.5);
-  color: white;
-}
-
-input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 4px;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 2px;
-  outline: none;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  background: white;
-  border-radius: 50%;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-input[type="range"]::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  background: white;
-  border-radius: 50%;
-  cursor: pointer;
-  border: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
-
-.glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.text-glow {
-  text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
-}
-
-.christmas-gradient {
-  background: linear-gradient(135deg, #c41e3a 0%, #1a472a 50%, #ffd700 100%);
-}
-
-.snow-gradient {
-  background: linear-gradient(180deg, #e8f4f8 0%, #ffffff 100%);
-}
-
-.night-sky-gradient {
-  background: linear-gradient(180deg, #0a1628 0%, #1a237e 50%, #0d47a1 100%);
+/* ==================== UTILITIES ==================== */
+@layer utilities {
+  /* Animation delay utilities */
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
+  .animation-delay-600 {
+    animation-delay: 600ms;
+  }
+  .animation-delay-800 {
+    animation-delay: 800ms;
+  }
+  .animation-delay-1000 {
+    animation-delay: 1000ms;
+  }
 }

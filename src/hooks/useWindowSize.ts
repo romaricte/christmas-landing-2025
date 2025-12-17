@@ -1,40 +1,38 @@
+// src/hooks/useWindowSize.ts
 import { useState, useEffect } from 'react'
+import type { Size } from '../types'
+import { BREAKPOINTS } from '../utils/constants'
 
-interface WindowSize {
-  width: number
-  height: number
+interface WindowSize extends Size {
   isMobile: boolean
   isTablet: boolean
   isDesktop: boolean
 }
 
-export const useWindowSize = () => {
-  const [windowSize, setWindowSize] = useState<WindowSize>({
-    width: typeof window !== 'undefined' ? window.innerWidth : 1920,
-    height: typeof window !== 'undefined' ? window.innerHeight : 1080,
-    isMobile: false,
-    isTablet: false,
-    isDesktop: true,
+export function useWindowSize(): WindowSize {
+  const [windowSize, setWindowSize] = useState<Size>({
+    width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0,
   })
 
   useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth
-      const height = window.innerHeight
-
+    function handleResize(): void {
       setWindowSize({
-        width,
-        height,
-        isMobile: width < 768,
-        isTablet: width >= 768 && width < 1024,
-        isDesktop: width >= 1024,
+        width: window.innerWidth,
+        height: window.innerHeight,
       })
     }
 
-    handleResize()
     window.addEventListener('resize', handleResize)
+    handleResize()
+
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  return windowSize
+  return {
+    ...windowSize,
+    isMobile: windowSize.width < BREAKPOINTS.md,
+    isTablet: windowSize.width >= BREAKPOINTS.md && windowSize.width < BREAKPOINTS.lg,
+    isDesktop: windowSize.width >= BREAKPOINTS.lg,
+  }
 }

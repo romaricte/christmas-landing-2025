@@ -1,35 +1,57 @@
+// src/hooks/useScroll.ts
 import { useState, useEffect, useCallback } from 'react'
+import { useStore } from '../stores/useStore'
+import { throttle } from '../utils/helpers'
 
-interface ScrollState {
+interface ScrollData {
   scrollY: number
   scrollProgress: number
-  direction: 'up' | 'down' | null
+  direction: 'up' | 'down'
+  isAtTop: boolean
+  isAtBottom: boolean
 }
 
-export const useScroll = () => {
-  const [scrollState, setScrollState] = useState<ScrollState>({
+interface ScrollOptions {
+  throttleMs?: number
+}
+
+export function useScroll(options: ScrollOptions = {}): ScrollData {
+  const { throttleMs = 16 } = options
+  
+  const [scrollData, setScrollData] = useState<ScrollData>({
     scrollY: 0,
     scrollProgress: 0,
-    direction: null,
+    direction: 'down',
+    isAtTop: true,
+    isAtBottom: false,
   })
+  
+  const setScrollProgress = useStore((state) => state.setScrollProgress)
 
-  const handleScroll = useCallback(() => {
-    const currentScrollY = window.scrollY
-    const maxScroll = document.documentElement.scrollHeight - window.innerHeight
-    const progress = maxScroll > 0 ? currentScrollY / maxScroll : 0
-
-    setScrollState((prev) => ({
-      scrollY: currentScrollY,
-      scrollProgress: Math.min(Math.max(progress, 0), 1),
-      direction: currentScrollY > prev.scrollY ? 'down' : currentScrollY < prev.scrollY ? 'up' : prev.direction,
+  const handleScroll = useCallback((): void => {
+    const scrollY = window.scrollY
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight
+    const progress = docHeight > 0 ? scrollY / docHeight : 0
+    
+    setScrollData((prev) => ({
+      scrollY,
+      scrollProgress: progress,
+      direction: scrollY > prev.scrollY ? 'down' : 'up',
+      isAtTop: scrollY < 10,
+      isAtBottom: progress > 0.99,
     }))
-  }, [])
+    
+    setScrollProgress(progress)
+  }, [setScrollProgress])
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    handleScroll()
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [handleScroll])
+    const throttledScroll = throttle(handleScroll, throttleMs)
 
-  return scrollState
+    window.addEventListener('scroll', throttledScroll, { passive: true })
+    handleScroll() // Initial call
+    
+    return () => window.removeEventListener('scroll', throttledScroll)
+  }, [handleScroll, throttleMs])
+
+  return scrollData
 }

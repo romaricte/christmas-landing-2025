@@ -1,86 +1,137 @@
-import * as THREE from 'three'
+// src/utils/constants.ts
+import type { 
+  SceneConfig, 
+  SnowConfig, 
+  TreeConfig, 
+  GiftConfig, 
+  AudioConfig 
+} from '../types'
 
+// Couleurs du thème
 export const COLORS = {
-  snow: '#ffffff',
-  snowGround: '#e8f4f8',
-  treeGreen: '#1a472a',
-  treeDarkGreen: '#0f2d1a',
-  gold: '#ffd700',
-  red: '#c41e3a',
-  warmLight: '#ffb347',
-  coolLight: '#87ceeb',
-  nightSky: '#0a1628',
-  moonlight: '#f5f5dc',
-  wood: '#8b4513',
-  giftRed: '#d32f2f',
-  giftGreen: '#2e7d32',
-  giftBlue: '#1976d2',
-  giftGold: '#f9a825',
-}
+  christmas: {
+    red: '#C41E3A',
+    redLight: '#FF6B6B',
+    green: '#165B33',
+    greenLight: '#228B22',
+    gold: '#FFD700',
+    goldLight: '#FFED4A',
+  },
+  night: {
+    dark: '#0F1C2E',
+    default: '#1E3A5F',
+    light: '#2E5A8F',
+  },
+  snow: {
+    white: '#FFFFFF',
+    cream: '#F5E6D3',
+    ice: '#87CEEB',
+  },
+} as const
 
-export const CHRISTMAS_LIGHTS_COLORS = [
-  new THREE.Color('#ff0000'),
-  new THREE.Color('#00ff00'),
-  new THREE.Color('#0000ff'),
-  new THREE.Color('#ffff00'),
-  new THREE.Color('#ff00ff'),
-  new THREE.Color('#00ffff'),
-  new THREE.Color('#ffa500'),
-  new THREE.Color('#ff69b4'),
-]
-
-export const SCENE_CONFIG = {
+// Configuration de la scène 3D
+export const SCENE_CONFIG: SceneConfig = {
   camera: {
+    position: [0, 2, 12],
     fov: 45,
     near: 0.1,
     far: 1000,
-    position: [0, 3, 12] as [number, number, number],
   },
   fog: {
-    color: '#0a1628',
+    color: '#0a0a1a',
     near: 10,
     far: 50,
   },
-  snow: {
-    count: 5000,
-    area: { x: 30, y: 20, z: 30 },
-    speed: { min: 0.02, max: 0.06 },
-    size: { min: 0.02, max: 0.08 },
+}
+
+// Configuration des particules de neige
+export const SNOW_CONFIG: SnowConfig = {
+  count: 8000,
+  area: {
+    width: 50,
+    height: 30,
+    depth: 50,
   },
-  tree: {
-    position: [0, 0, 0] as [number, number, number],
-    scale: 1,
-    layers: 5,
+  speed: {
+    min: 0.5,
+    max: 2,
   },
-  ground: {
-    size: 100,
-    segments: 128,
+  size: {
+    min: 0.02,
+    max: 0.08,
   },
 }
 
-export const ANIMATION_CONFIG = {
-  tree: {
-    rotationSpeed: 0.001,
-    lightFlickerSpeed: 2,
+// Configuration du sapin
+export const TREE_CONFIG: TreeConfig = {
+  levels: 4,
+  baseRadius: 1.8,
+  height: 1.2,
+  lightsCount: 50,
+  colors: ['#ff0000', '#00ff00', '#ffff00', '#0000ff', '#ff00ff', '#00ffff'],
+}
+
+// Configuration des cadeaux
+export const GIFTS_CONFIG: GiftConfig = {
+  count: 8,
+  colors: ['#C41E3A', '#165B33', '#FFD700', '#4169E1', '#9932CC'],
+  positions: [
+    { x: -2, y: 1.5 },
+    { x: 2, y: 1.5 },
+    { x: -1.5, y: 2 },
+    { x: 1.5, y: 2 },
+    { x: 0, y: 2.5 },
+    { x: -2.5, y: 0.5 },
+    { x: 2.5, y: 0.5 },
+    { x: 0, y: 1 },
+  ],
+}
+
+// Configuration audio
+export const AUDIO_CONFIG: Record<'music' | 'ambient', AudioConfig> = {
+  music: {
+    src: '/audio/jingle-bells.mp3',
+    volume: 0.3,
+    loop: true,
   },
-  sleigh: {
-    speed: 0.3,
-    amplitude: { x: 15, y: 2, z: 8 },
-    height: 8,
-  },
-  gifts: {
-    hoverHeight: 0.3,
-    hoverSpeed: 2,
-    rotationSpeed: 0.5,
-  },
-  camera: {
-    smoothness: 0.05,
-    maxRotation: 0.1,
+  ambient: {
+    src: '/audio/ambient-wind.mp3',
+    volume: 0.2,
+    loop: true,
   },
 }
 
+// Date de Noël pour le countdown
+export const getChristmasDate = (): Date => {
+  const now = new Date()
+  const year = now.getMonth() === 11 && now.getDate() > 25 
+    ? now.getFullYear() + 1 
+    : now.getFullYear()
+  return new Date(year, 11, 25)
+}
+
+// Breakpoints responsive
 export const BREAKPOINTS = {
-  mobile: 768,
-  tablet: 1024,
-  desktop: 1280,
-}
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+  '2xl': 1536,
+} as const
+
+// Sections de la page
+export const SECTIONS = [
+  { id: 'hero', label: 'Accueil' },
+  { id: 'countdown', label: 'Compte à rebours' },
+  { id: 'wishes', label: 'Vœux' },
+  { id: 'newsletter', label: 'Newsletter' },
+] as const
+
+// Ornements disponibles
+export const ORNAMENT_TYPES = [
+  { type: 'ball', label: 'Boule', emoji: '🔴' },
+  { type: 'star', label: 'Étoile', emoji: '⭐' },
+  { type: 'candy', label: 'Sucre d\'orge', emoji: '🍬' },
+  { type: 'bell', label: 'Cloche', emoji: '🔔' },
+  { type: 'ribbon', label: 'Ruban', emoji: '🎀' },
+] as const

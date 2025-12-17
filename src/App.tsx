@@ -1,52 +1,78 @@
-import { useEffect } from 'react'
-import { Scene } from './components/3d/Scene'
-import { LoadingScreen } from './components/ui/LoadingScreen'
-import { Overlay } from './components/ui/Overlay'
-import { useBackgroundMusic, useAmbientSound } from './hooks/useAudio'
+// src/App.tsx
+import { Suspense, useEffect, useState } from 'react'
+import { AnimatePresence } from 'framer-motion'
+
+// Components
+import CustomLoader from './components/ui/Loader'
+import Navbar from './components/ui/Navbar'
+import Hero from './components/ui/Hero'
+import CountdownTimer from './components/ui/CountdownTimer'
+import WishCard from './components/ui/WishCard'
+import Newsletter from './components/ui/Newsletter'
+import Footer from './components/ui/Footer'
+import AudioControls from './components/ui/AudioControls'
+
+// Store - Sélecteurs individuels
 import { useStore } from './stores/useStore'
-import './styles/globals.css'
-import './styles/animations.css'
+import { prefersReducedMotion } from './utils/helpers'
 
-function App() {
-  const isMuted = useStore((state) => state.isMuted)
-  const isLoading = useStore((state) => state.isLoading)
-  const backgroundMusic = useBackgroundMusic()
-  const ambientSound = useAmbientSound()
+function App(): React.ReactNode {
+  // Sélectionner les valeurs individuellement
+  const isLoaded = useStore((state) => state.isLoaded)
+  const setLoaded = useStore((state) => state.setLoaded)
+  const setReducedMotion = useStore((state) => state.setReducedMotion)
+  
+  const [showLoader, setShowLoader] = useState<boolean>(true)
 
+  // Vérifier les préférences utilisateur
   useEffect(() => {
-    if (!isLoading && !isMuted) {
-      backgroundMusic.play()
-      ambientSound.play()
-    } else {
-      backgroundMusic.pause()
-      ambientSound.pause()
+    setReducedMotion(prefersReducedMotion())
+    
+    // Écouter les changements de préférence
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const handleChange = (e: MediaQueryListEvent): void => {
+      setReducedMotion(e.matches)
     }
-  }, [isLoading, isMuted, backgroundMusic, ambientSound])
+    
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [setReducedMotion])
 
-  useEffect(() => {
-    const handleFirstInteraction = () => {
-      if (!isMuted && !isLoading) {
-        backgroundMusic.play()
-        ambientSound.play()
-      }
-      document.removeEventListener('click', handleFirstInteraction)
-      document.removeEventListener('keydown', handleFirstInteraction)
-    }
-
-    document.addEventListener('click', handleFirstInteraction)
-    document.addEventListener('keydown', handleFirstInteraction)
-
-    return () => {
-      document.removeEventListener('click', handleFirstInteraction)
-      document.removeEventListener('keydown', handleFirstInteraction)
-    }
-  }, [isMuted, isLoading, backgroundMusic, ambientSound])
+  // Gérer la fin du chargement
+  const handleLoadComplete = (): void => {
+    setLoaded(true)
+    setTimeout(() => setShowLoader(false), 500)
+  }
 
   return (
-    <div className="app">
-      <LoadingScreen />
-      <Scene />
-      <Overlay />
+    <div className="relative w-full min-h-screen overflow-x-hidden">
+      {/* Loader */}
+      <AnimatePresence mode="wait">
+        {showLoader && (
+          <CustomLoader onComplete={handleLoadComplete} />
+        )}
+      </AnimatePresence>
+
+      {/* Contenu UI */}
+      <div 
+        className={`relative z-10 transition-opacity duration-1000 ${
+          isLoaded ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
+        <Navbar />
+        
+        <main>
+          <Hero />
+          <CountdownTimer />
+          <WishCard />
+          <Newsletter />
+        </main>
+        
+        <Footer />
+      </div>
+
+      {/* Contrôles audio */}
+      <AudioControls />
     </div>
   )
 }
